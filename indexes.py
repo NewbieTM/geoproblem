@@ -1,6 +1,3 @@
-path_2023 = r"D:\omela\new_band_data\2A_MSIL1C_20180611T065621_N0206_R063_T42VUP_20180611T090058.SAFE"
-path_comparison = r"D:\omela\output_data_sentinel\S2A_MSIL1C_20180611T065621_N0206_R063_T42VUP_20180611T090058.SAFE"
-
 import os
 import rasterio
 import numpy as np
@@ -23,12 +20,7 @@ def list_specific_tiff_files(directory, target_filenames):
                 tiff_files.append(os.path.join(root, file))
     return tiff_files
 
-# Define target filenames to search for
-target_files = ["response.tiff", "bands.tiff"]
 
-# Search in the respective directories
-files_2023 = list_specific_tiff_files(path_2023, target_filenames=["bands.tiff"])
-files_comparison = list_specific_tiff_files(path_comparison, target_filenames=["response.tiff"])
 
 
 def load_bands_from_tiff(file_paths):
@@ -48,16 +40,20 @@ def load_bands_from_tiff(file_paths):
     return bands_data
 
 
+path_2023 = r"D:\omela\new_band_data\S2A_MSIL1C_20180611T065621_N0206_R063_T42VUP_20180611T090058.SAFE"
+path_comparison = r"D:\omela\output_data_sentinel\S2A_MSIL1C_20180611T065621_N0206_R063_T42VUP_20180611T090058.SAFE"
+
+# Define target filenames to search for
+target_files = ["response.tiff", "bands.tiff"]
+
+# Search in the respective directories
+files_2023 = list_specific_tiff_files(path_2023, target_filenames=["bands.tiff"])
+files_comparison = list_specific_tiff_files(path_comparison, target_filenames=["response.tiff"])
+
 bands_2023 = load_bands_from_tiff(files_2023)
 bands_comparison = load_bands_from_tiff(files_comparison)
 
-# Проверяем форму данных
-'''
-for i, data in enumerate(bands_2023):
-    print(f"Файл {i + 1} для 2023 года: форма {bands_2023}")
-for i, data in enumerate(bands_comparison):
-    print(f"Файл {i + 1} для сравнения: форма {bands_comparison}")
-'''
+
 
 B04old = [bands_2023[i] for i in range(0, len(bands_2023), 2)]  # Четные индексы
 B08old = [bands_2023[i] for i in range(1, len(bands_2023), 2)]
@@ -78,16 +74,12 @@ NDWI = [
     (b03 - b08) / (b03 + b08 + 1e-8)  # + 1e-6 Избегаем деления на ноль, добавляя малую величину
     for b03, b08 in zip(B03, B08)
 ]
-#print(NDWI)
-flat_NDWI = np.concatenate([arr.ravel() for arr in NDWI])
-flat_first = np.concatenate([arr.ravel() for arr in first_ndvi_results])
-flat_second = np.concatenate([arr.ravel() for arr in second_ndvi_results])
 
 masks = [
-    ((ndwi < 0.1) & ((first - second) > 0.2))
+    ((ndwi < 0.2) & ((first - second) > 0.25))
     for ndwi, first, second in zip(NDWI, first_ndvi_results, second_ndvi_results)
 ]
-print(masks)
+#print(masks)
 
 
 
